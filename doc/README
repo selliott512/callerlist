@@ -1,6 +1,6 @@
-This open source application was written by members of the Atheist Community
-of Austin in order to help with call screening.  callers.php records callers
-in a database that index.php then displays.
+"CallerList" was written by members of the Atheist Community of Austin in order
+to help with call screening.  callers.php records callers in a database that 
+index.html then displays.
 
 The included tv-style.css file may be adjusted according to your preference.
 

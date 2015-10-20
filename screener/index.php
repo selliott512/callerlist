@@ -7,17 +7,15 @@
 // See "create table" in index.php for the tv_callers table.
 // 
 // This software is subject to the GPLv2 or later.  See then enclosed "LICENSE"
-// file for details.
-// 
-// Send comments and questions to:
-//     tv@atheist-community.org
+// file in the "doc" directory for details.  Also, see the "README" file for
+// contact and other information.
 ?>
 
 <html>
 <head>
-  <title>Atheist Experience Callers Administration</title>
+  <title>Call Screener Data Entry</title>
   <link rel="shortcut icon" href="../style/favicon.png" type="image/x-icon" />
-  <link rel="stylesheet" type="text/css" href="../style/tv-style.css" />
+  <link rel="stylesheet" type="text/css" href="../style/tv-style-classic.css" />
 
 <?php
 
@@ -29,6 +27,12 @@ $edit_line = 0;  // The line that is being edited.
 if ($_POST)
     handleform($_POST, $numlines);
 showform($numlines);
+
+function getMsec()
+{
+    list($usec, $sec) = explode(" ", microtime());
+    return  $sec . substr($usec, 2, 3);
+}
 
 function handleform($calls, $numlines)
 {
@@ -88,7 +92,11 @@ function handleform($calls, $numlines)
                 trim($calls["caller_name-$i"]));
 
             $called = $calls["called-$i"];
-            if (!$called)
+            if ($called)
+            {
+                $called = mysql_real_escape_string(trim($called));
+            }
+            else
             {
                 $called = time();
             }
@@ -122,6 +130,8 @@ function handleform($calls, $numlines)
             echo mysql_error() . "<p />\n";
     }
 
+    $time = getMsec();
+    
     if (array_key_exists("flash", $calls))
     {
         // Attempt to update the message.
@@ -129,7 +139,15 @@ function handleform($calls, $numlines)
                      set flash=1");
         if (mysql_errno() > 0)
             echo mysql_error() . "<p />\n";
+            
+        // Update the flash TS for the new flash system.
+	    mysql_query("update tv_config
+    			     set flash_ts=$time");
     }
+    
+    // Update the modified timestamp.
+    mysql_query("update tv_config
+    		     set modified=$time");
 } // handleform()
 
 function showform($numlines)

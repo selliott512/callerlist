@@ -2,63 +2,81 @@
  * however you want.
  */
 
-span.callerslinenumber 
-{
-    color: #5500aa;
-    font-face: verdana; 
-    font-size: 50;
-}
-
-input[type="submit"]
-{
-    color: #aa0000;
-    background-color: lightblue;
-}
-
-input[type="text"]
-{
-    color: #000000; /* Does nothing.  Just an example. */
-}
+/* The following gives a pale green background (body) with dark grey table
+ * backgrounds (table), which is seen as divisions between cells, and
+ * light gery row backgrounds (tr).  Also, the body font size provides a
+ * default font size for the entire document.
+ */
 
 body
 {
+    font-size: 150%;
+}
+
+table
+{
+    background-color: #808080;
+}
+
+tr
+{
+    background-color: #e0e0e0;
+}
+
+/* Make the times really big since the time is important. */
+
+td#time, td#modified
+{
+    font-size: 200%;
+}
+
+/* The button seems to be a special case where attributes are not inherited
+ * from the containing attributes.
+ */
+
+input
+{
+    font-size: 80%;
+    background-color: #c0c0ff;
+}
+
+/* Shrink static information since it mostly just takes up space.  if it's
+ * possible for .header to inherit from .legend it's not obvious to me how.
+ */
+
+.header
+{
+    font-size: 50%;
+    font-weight: bold;
+}
+
+.legend
+{
+    font-size: 50%;
+}
+
+/* Caller priorities.  High priority is also used for error. */
+
+.high
+{
+    background-color: #ff8080;
+}
+
+.medium
+{
+}
+
+.low
+{
+    background-color: #8080ff;
+}
+
+.old
+{
+    background-color: #b0b0b0;
+}
+
+.background
+{
     background-color: #bbffbb;
-}
-
-/* The following is used exclusively by index.php. */
-
-span.indexlinenumber 
-{
-    font-face: verdana; 
-    font-size: 35;
-}
-
-span.called 
-{
-    font-face: verdana;
-    font-size: 35;
-}
-
-span.caller_name 
-{
-    font-face: verdana;
-    font-size: 35;
-}
-
-span.topic 
-{
-    font-face: verdana;
-    font-size: 35;
-}
-
-span.message 
-{
-    font-face: verdana;
-    font-size: 35;
-}
-
-span.error 
-{
-    font-face: verdana;
-    font-size: 35;
 }

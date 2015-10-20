@@ -4,10 +4,8 @@
 // See "create table" in index.php for the tv_callers table.
 // 
 // This software is subject to the GPLv2 or later.  See then enclosed "LICENSE"
-// file for details.
-// 
-// Send comments and questions to:
-//     tv@atheist-community.org
+// file in the "doc" directory for details.  See the "README" file for 
+// contact information.
 ?>
 
 <html>
@@ -25,8 +23,8 @@
   $refresh = $target_refresh + $delta;
   $GLOBALS["now_str"] = date("h:i:s"); // Only way it's visible to functions.
 ?>
-  <title>Atheist Experience Callers</title>
-  <link rel="stylesheet" type="text/css" href="../style/tv-style.css" />
+  <title>Caller List</title>
+  <link rel="stylesheet" type="text/css" href="../style/tv-style-classic.css" />
   <link rel="shortcut icon" href="../style/favicon.png" type="image/x-icon" />
 
 <?php
@@ -179,7 +177,7 @@ function showform()
                         Refreshing every $target_refresh seconds.\n";
 
     echo "<br><br><br>Legend: <br>
-                 &nbsp; &nbsp; * - High priority (ACA member, etc.)<br>
+                 &nbsp; &nbsp; * - High priority (member, etc.)<br>
                  &nbsp; &nbsp; ? - Low priority (crank, etc.)<br>
                  &nbsp; &nbsp; O - Old caller\n";
 

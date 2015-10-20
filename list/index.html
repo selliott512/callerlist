@@ -1,0 +1,483 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+This file provides a page for those in the studio to view the callers.
+
+See "create table" in index.php for the tv_callers table.
+
+This software is subject to the GPLv2 or later.  See then enclosed "LICENSE"
+file in the "doc" directory for details.  See the "README" file for 
+contact information.
+-->
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Caller List Unset</title>
+    <link rel="stylesheet" type="text/css" href="../style/tv-style.css" />
+    <link rel="shortcut icon" href="../style/favicon.png" type="image/x-icon" />
+    <script type="text/javascript">
+//<![CDATA[
+// Constants
+var rate = 5000; // Refresh rate in msec.
+var halfRate = parseInt(rate / 2);
+var flashDuration = 7500; // Flash for 7.5 seconds.  Set to 0 to disable.
+var title = "Caller List";
+
+// Globals
+var allCallers = false;
+var debug = false;
+var emptyCallerLen = 0;
+var flashServerMsec = 0;
+var logStarted = false;
+var modified = 0; // Server's MTIME for the entire database.
+var nowClientMsec = 0;
+var nowServerMsec = 0;
+var offset = 0; // Client time - server time in msec.
+var paused = false;
+var pendingCount = 0;
+var randomized = false;
+var rtt = 0;
+var startClientMsec = 0; // Start time for RTT calculations.
+var startServerMsec = 0; // Start time for RTT calculations.
+var synced = false;
+var xh = null;
+
+function simpleDate(dateObj)
+{
+    return ("" + (100 + dateObj.getHours())).substring(1) + ":" +
+        ("" + (100 + dateObj.getMinutes())).substring(1) + ":" +
+        ("" + (100 + dateObj.getSeconds())).substring(1);
+}
+
+function numToDate(dateNum)
+{
+    var date = new Date();
+    date.setTime(dateNum);
+    return simpleDate(date);
+}
+
+function addCaller(items)
+{
+    var callerTableEl = document.getElementById("callerTable");
+
+    var trEl = document.createElement("tr");
+    callerTableEl.appendChild(trEl);
+
+    // Hande the prority as a special case.
+    var className;
+    var priority = items[1];
+    if (priority == -1)
+    {
+        className = "old";
+        items[1] = "O";
+    }
+    else if (priority < 5)
+    {
+        className = "high";
+        items[1] = "H";
+    }
+    else if (priority == 5)
+    {
+        className = "medium";
+        items[1] = ".";
+    }
+    else
+    {
+        className = "low";
+        items[1] = "L";
+    }
+
+    trEl.setAttribute("class", className);
+
+    for (var idx in items)
+    {
+        tdEl = document.createElement("td");
+        trEl.appendChild(tdEl);
+
+        var timeText;
+        if (idx == 2)
+        {
+            // Time is a special case.
+            itemText = numToDate(items[idx]);
+        }
+        else
+        {
+            itemText = items[idx];
+        }
+        
+        itemTN = document.createTextNode(itemText);
+        tdEl.appendChild(itemTN);
+    }
+}
+
+function deleteCallers()
+{
+    var callerTableEl = document.getElementById("callerTable");
+
+    log("Start of deleteCallers.");
+
+    // The first child is the column header of the callerTable, so leave that.
+    while (callerTableEl.childNodes.length > emptyCallerLen)
+    {
+        callerTableEl.removeChild(callerTableEl.lastChild);
+    } 
+}
+
+// Log by appending to the body.
+function log(msg)
+{
+    if (!debug)
+    {
+        return;
+    }
+    
+    var date = simpleDate(new Date());
+
+    var logTN = document.createTextNode(date + ": " + msg);
+    document.body.appendChild(logTN);
+
+    var brEl = document.createElement("br");
+    document.body.appendChild(brEl);
+}
+
+function handleFlash()
+{
+    log("Start handleFlash.  server=" + nowServerMsec + " flash=" +
+        flashServerMsec + " duration=" + flashDuration + " limit=" +
+        (flashServerMsec + flashDuration));
+
+    // It's up to the client to decide how and for how long to flash.  This
+    // client flashes 0 - 7.5 seconds after the flash.
+    if (flashDuration && flashServerMsec &&
+        ((nowServerMsec >= flashServerMsec) &&
+         (nowServerMsec <= (flashServerMsec + flashDuration))))
+    {
+        log("Turning flash on.");
+        document.body.setAttribute("class", "high");
+    }
+    else
+    {
+        log("Turning flash off.");
+        document.body.setAttribute("class", "background");
+    }
+}
+
+function ajaxHandler()
+{
+    if (paused)
+    {
+        return;
+    }
+
+    if (ah.readyState != 4)
+    {
+        return;
+    }
+
+    log("Start of ajaxHandler.  offset=" + offset);
+
+    nowClientMsec = (new Date()).getTime();
+    nowServerMsec = nowClientMsec - offset;
+    rtt = nowClientMsec - startClientMsec;
+    document.getElementById("rtt").innerHTML = rtt;
+
+    // readyState is 4 which is a final state.  Update the time with a
+    // descriptive timestamp.
+    document.getElementById("time").innerHTML = numToDate(
+        nowClientMsec - offset);
+    
+    // Load again in 5 seconds regardless of the HTTP status but only if
+    // there is no call pending.  Also, all callers implies a huge resource
+    // hungry list that the viewer wants to view without interruption.
+    if (!pendingCount && !allCallers)
+    {
+        // Adjust some small amount to approach being close to the middle
+        // of a the first second (the 500) that is a multiple of rate.  Error 
+        // is positive when we are ahead of where we should be.  RTT is added
+        // since it is effectively part of the total cycle.  Server timestamps
+        // are used since that is what is displayed.
+        //
+        // For example, if the current server time is 6300 msecs then if there
+        // was no adjustment this callback would next be called in 6300 + rate +
+        // rtt = 11300 msecs + rtt.  The adjustment will get it closer to
+        // 10500 msecs.  The 500 is used to keep it in the middle of the first
+        // second rather then alternating between, say, 9999 msecs and 15001
+        // msecs if the beginning of the first second was targeted.  9999 msecs
+        // would be rounded down to 9 seconds secs when displayed.
+        if (synced)
+        {
+            var error = ((((nowServerMsec + rtt) - 500) + halfRate) % rate) -
+                halfRate;
+            // To prevent any oscillation the "/ 2" is used to limit the rate
+            // that the rate is adjusted.
+            var rateOffset = -parseInt(error / 2);
+        }
+        else
+        {
+            if (randomized)
+            {
+                // Not synced.  Don't bother to adjust the timeout.
+                var rateOffset = 0;
+            }
+            else
+            {
+                // Not synced and just starting up.  For the first timer wait
+                // some random ammount of time.  This should make the updates
+                // from all the clients more evenly distributed spaced.
+                var rateOffset = -parseInt(rate * Math.random());
+                randomized = true;
+            }
+        }
+    
+        pendingCount++;
+        setTimeout("updateCallback()", rate + rateOffset);
+    }
+
+    // Update the background.
+    handleFlash();
+
+    var httpStatusEl = document.getElementById("httpStatus");
+    httpStatusEl.innerHTML = ah.status;
+    if (ah.status != 200)
+    {
+        httpStatusEl.setAttribute("class", "high");
+        return;    
+    }
+    else
+    {
+        httpStatusEl.setAttribute("class", "medium");
+    }
+
+    // Receive
+    var xmldoc = ah.responseXML;
+    var cinfo = xmldoc.documentElement;
+
+    for (var nodeIdx = 0; nodeIdx < cinfo.childNodes.length; nodeIdx++)
+    {
+        var node = cinfo.childNodes[nodeIdx];
+        if (node.nodeType != 1)
+        {
+            // Only consider real element child nodes.
+            continue;
+        }
+
+        if (node.nodeName == "lines")
+        {
+            // For now assume that if there are any lines then it will be a
+            // complete list.
+            deleteCallers();
+
+            for (var lineIdx = 0; lineIdx < node.childNodes.length;
+                 lineIdx++)
+            {
+                var line = node.childNodes[lineIdx];
+                if (line.nodeType != 1)
+                {
+                    // Only consider real element child nodes.
+                    continue;
+                }
+
+                var items = new Array();
+                var lineNum = 0;
+                for (var itemIdx = 0;
+                     itemIdx < line.childNodes.length;
+                     itemIdx++)
+                {
+                    var item = line.childNodes[itemIdx];
+                    if (item.nodeType != 1)
+                    {
+                        // Only consider real element child nodes.
+                        continue;
+                    }
+
+                    if (item.nodeName == "number")
+                    {
+                        lineNum = item.firstChild.nodeValue;
+                    }
+
+                    if (item.firstChild)
+                    {
+                        items.push(item.firstChild.nodeValue);
+                    }
+                    else
+                    {
+                        items.push("");
+                    }
+                }
+
+                addCaller(items);
+            }
+        }
+        else
+        {
+            var ele = document.getElementById(node.nodeName);
+            if (ele)
+            {
+                // Convert what was received to some descriptive format.
+                var eleDesc;
+                if (node.nodeName == "modified")
+                {
+                    modified = node.firstChild.nodeValue;
+                    eleDesc = numToDate(modified);
+                }
+                else if (node.nodeName == "time")
+                {
+                    nowServerMsec = node.firstChild.nodeValue;
+                    eleDesc = numToDate(nowServerMsec);
+
+                    // Keep track of the offset relative to the server's
+                    // time.
+                    offset = nowClientMsec - nowServerMsec;
+                    log("Updated offset to " + offset);
+                }
+                else
+                {
+                    eleDesc = node.firstChild.nodeValue;
+                }
+                ele.innerHTML = eleDesc;
+            }
+            else
+            {
+                if ((node.nodeName == "flash") && node.firstChild)
+                {
+                    flashServerMsec = parseInt(node.firstChild.nodeValue);
+                    handleFlash();
+                }
+            }
+        }
+    }
+}
+
+// Used to distinguish between being called as a callback and directly.
+function updateCallback()
+{
+    pendingCount--;
+    update();
+}
+
+function update()
+{
+    if (xh)
+    {
+        // Cancel any existng AJAX connection.  This does not seem to work.
+        xh.cancel();
+    }
+
+    // Only works on new browsers.  Setup.
+    ah = new XMLHttpRequest();
+    ah.onreadystatechange = ajaxHandler;
+
+    ah.open("POST", "../ajax/get-callers.php", true); // Third arg - async.
+    ah.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+    startClientMsec = (new Date()).getTime();
+    var postStr = "modified=" + modified + "&allCallers=" + allCallers;
+    log("post string: " + postStr);
+    ah.send(postStr);
+}
+
+function pause()
+{
+    paused = document.getElementById("pause").checked;
+    document.title = title + (paused ? " (paused)" : "");
+    if (!paused)
+    {
+        update();
+    }
+}
+
+function sync()
+{
+    synced = document.getElementById("sync").checked;
+    if (!synced)
+    {
+        // If switching from synced mode to non-synced mode we need to
+        // re-randomize the time.
+        randomized = false;
+    }
+}
+
+// Calling the following function "all" does not work for Android.
+function allC()
+{
+    allCallers = document.getElementById("all").checked;
+    log("Start of all.  allCallers=" + allCallers);
+    modified = 0; // Force full update when toggled.
+    update();
+}
+
+function init()
+{
+    // Make a note of the number of nodes in an empt caller table so it can
+    // blanked out later.
+    var callerTableEl = document.getElementById("callerTable");
+    emptyCallerLen = callerTableEl.childNodes.length;
+
+    document.title = title;
+    update();
+}
+//]]>
+    </script>
+  </head>
+  <body onload="javascript:init()">
+    <table id="timeTable" width="100%" border="0" cellpadding="2" cellspacing="2">
+      <tr class="header">
+        <td style="width:50%">Modified</td>
+        <td style="width:50%" align="right">
+          <b>Time</b>
+        </td>
+      </tr>
+      <tr>
+        <td style="width:50%" id="modified">0</td>
+        <td style="width:50%" align="right" id="time">0</td>
+      </tr>
+    </table>
+    <p></p>
+    <table id="statusTable" width="100%" border="0" cellpadding="2" cellspacing="2">
+      <tr class="header">
+        <td style="width:16.67%">HTTP Status</td>
+        <td style="width:16.67%">RTT (msec)</td>
+        <td style="width:16.67%">Update Control</td>
+        <td style="width:16.67%">Time Alignment</td>
+        <td style="width:16.67%">Caller Filter</td>
+        <td style="width:16.67%">Manual Update</td>
+      </tr>
+      <tr>
+        <td style="width:16.67%" id="httpStatus">-1</td>
+        <td style="width:16.67%" id="rtt">-1</td>
+        <td style="width:16.67%"><input type="checkbox" id="pause" value="no" onclick="pause()" />Pause</td>
+        <td style="width:16.67%"><input type="checkbox" id="sync" value="no" onclick="sync()" />Sync</td>
+        <td style="width:16.67%"><input type="checkbox" id="all" value="no" onclick="allC()" />All</td>
+        <td style="width:16.67%">
+          <input type="button" id="update" value="Update" onclick="update()" />
+        </td>
+      </tr>
+    </table>
+    <p></p>
+    <table id="callerTable" width="100%" border="0" cellpadding="2" cellspacing="2">
+      <tr class="header">
+        <td style="width:2.5%">L</td>
+        <td style="width:2.5%">P</td>
+        <td style="width:10%">Time</td>
+        <td style="width:25%">Name</td>
+        <td style="width:60%">Topic</td>
+      </tr>
+    </table>
+    <p></p>
+    <table id="legendTable" class="legend" width="100%" border="0" cellpadding="2e" cellspacing="2">
+      <tr>
+        <td style="width:25%" class="high">H - High priority</td>
+        <td style="width:25%" class="medium">. - Medium priority</td>
+        <td style="width:25%" class="low">L - Low priority</td>
+        <td style="width:25%" class="old">O - Old caller</td>
+      </tr>
+    </table>
+    <p></p>
+    <table id="messageTable" width="100%" border="0" cellpadding="2e" cellspacing="2">
+      <tr>
+        <td id="message">This page has never been updated.  
+            Internet trouble?</td>
+      </tr>
+    </table>
+    <p></p>
+  </body>
+</html>
