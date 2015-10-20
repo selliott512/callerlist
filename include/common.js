@@ -6,13 +6,12 @@ var title = null;
 
 // Globals
 var allCallers = false;
-var updateXML = null;
 var colIdxId = 0;
 var colIdxLine = 1;
-var colIdxTime = 2;
-var colIdxPriority = 3;
-var colIdxOnline = 4;
 var colIdxName = 5;
+var colIdxOnline = 4;
+var colIdxPriority = 3;
+var colIdxTime = 2;
 var colIdxTopic = 6;
 var colNames = ["id", "line", "time", "priority", "online", "name", "topic"];
 var debug = false;
@@ -21,25 +20,28 @@ var emptyCallerLen = 0;
 var flashServerMsec = 0;
 var lineToId = new Array();
 var logStarted = false;
+var lastEditClientMsec = 0;
 var modified = -1; // Server's MTIME for the entire database.
 var nowClientMsec = 0;
 var nowServerMsec = 0;
+var numCallers = 0; // Number of callers currently displayed.
 var offset = 0; // Client time - server time in msec.
 var paused = false;
 var pauseLimit = 0;
 var pauseTime = 0;
 var pendingCount = 0;
 var phpsessid = null;
-var numCallers = 0; // Number of callers currently displayed.
 var randomized = false;
 var redirect = null;
 var rtt = 0;
-var startClientMsec = 0; // Start client time for RTT calculations.
 var sendXML = null;
+var serverUpToDate = true;
+var startClientMsec = 0; // Start client time for RTT calculations.
 var startServerMsec = 0; // Start server time for RTT calculations.
 var synced = false;
 var updated = false; // If there are pending changes to send.
 var updates = 0; // Number of updates made.
+var updateXML = null;
 var valueLast = null;
 var xh = null;
 
@@ -308,25 +310,30 @@ function addCaller(items)
     }
 
     // At this point the row exists regardless of mode.  We only need to
-    // update by Ids in the document.
-
-    for (var idx in items)
+    // update by Ids in the document.  Update unconditionally in list mode
+    // (!editMode).  In edit mode don't step on changes made by the user, so
+    // ignore the edits from the server but then update the field classes as
+    // if the edits had been accepted by the server.
+    if (!editMode || serverUpToDate)
     {
-        var itemText = items[idx];
-        var colId = colNames[idx];
-        var cellId = rowId + "-" + colId;
-        var itemEl = document.getElementById(cellId);
-
-        if (itemEl)
+        for (var idx in items)
         {
-            if (itemEl.firstChild) // Could be done with instanceof.
+            var itemText = items[idx];
+            var colId = colNames[idx];
+            var cellId = rowId + "-" + colId;
+            var itemEl = document.getElementById(cellId);
+
+            if (itemEl)
             {
-                var itemTn = document.createTextNode(itemText);
-                itemEl.replaceChild(itemTn, itemEl.firstChild);
-            }
-            else
-            {
-                itemEl.value = itemText;
+                if (itemEl.firstChild) // Could be done with instanceof.
+                {
+                    var itemTn = document.createTextNode(itemText);
+                    itemEl.replaceChild(itemTn, itemEl.firstChild);
+                }
+                else
+                {
+                    itemEl.value = itemText;
+                }
             }
         }
     }
@@ -435,6 +442,7 @@ function ajaxHandler()
 
     nowClientMsec = (new Date()).getTime();
     nowServerMsec = nowClientMsec - offset;
+    serverUpToDate = (nowServerMsec - lastEditClientMsec) > rate;
     rtt = nowClientMsec - startClientMsec;
     document.getElementById("rtt").innerHTML = rtt;
 
@@ -551,6 +559,17 @@ function ajaxHandler()
             "null XML.  This should not happen.");
         messageEl.replaceChild(nullXmlTn, messageEl.firstChild);
         return;
+    }
+
+    var updatesEl = respXML.getElementsByTagName("updates")[0];
+    if (updatesEl)
+    {
+        var respUpdates = updatesEl.firstChild.nodeValue;
+        if (respUpdates != updates)
+        {
+            log("Change during update: respUpdates=" + respUpdatse +
+                " but updates=" + updates);
+        }
     }
 
     var callerList = respXML.documentElement;
@@ -886,6 +905,7 @@ function updateXMLAppend(fieldId, value)
     var rootEl = updateXML.documentElement;
     updates++;
     updated = true;
+    lastEditClientMsec = (new Date()).getTime();
 
     var updatesEl = updateXML.getElementsByTagName("updates")[0];
     if (updatesEl)
@@ -1069,6 +1089,7 @@ function fieldKeyEdit(e)
             if (target.value != valueLast)
             {
                 target.className = "changed";
+                lastEditClientMsec = (new Date()).getTime();
             }
     }
 }
