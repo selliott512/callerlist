@@ -76,14 +76,22 @@ if ((session_id() != $_POST["phpsessid"]) ||
     return;
 }
 
-if ($dbConn->connect_errno)
+if (isset($dbConnError) || ($dbType == CL_DB_NONE))
 {
     // A modified timestamp of zero is sent so the client gets the correct
     // message once the DB is fixed.
     appendTextNode($respXML, $callerlistEl, "modified", 0);
+    if ($dbType == CL_DB_NONE)
+    {
+        $error = "Unknown \$pdo_dsn prefix \"$pdo_prefix\"";
+    }
+    else
+    {
+        $error = $dbConnError->getMessage();
+    }
     appendTextNode($respXML, $callerlistEl, "message", "Unable to connect to the " .
             "database.  You may need to check your settings in " .
-            "include/settings.php.  connect_error: " . $dbConn->connect_error);
+            "include/settings.php.  connect_error: " . $error);
     echo $respXML->saveXML();
     return;
 }
@@ -112,7 +120,7 @@ if ($editMode && $updateXMLText)
         $flashEl = $flashEls->item(0);
         if ($flashEl)
         {
-            $flash = $dbConn->real_escape_string($flashEl->nodeValue);
+            $flash = quoteMySQLStyle($flashEl->nodeValue);
             $sql = "UPDATE cl_config " .
                    "SET flash = '$time'";
             clLog($sql);
@@ -127,7 +135,7 @@ if ($editMode && $updateXMLText)
         $messageEl = $messageEls->item(0);
         if ($messageEl)
         {
-            $message = $dbConn->real_escape_string($messageEl->nodeValue);
+            $message = quoteMySQLStyle($messageEl->nodeValue);
             $sql = "UPDATE cl_config " .
                    "SET message = '$message'";
             clLog($sql);
@@ -150,7 +158,7 @@ if ($editMode && $updateXMLText)
             }
             foreach ($callerEl->childNodes as $itemEl)
             {
-                $itemA[$itemEl->nodeName] = $dbConn->real_escape_string(
+                $itemA[$itemEl->nodeName] = quoteMySQLStyle(
                     $itemEl->nodeValue);
             }
 
@@ -170,10 +178,10 @@ if ($editMode && $updateXMLText)
                    "AND    online = '1'";
             clLog($sql);
             $dbResult = $dbConn->query($sql);
-            if ($dbResult && ($dbResult->num_rows == 1))
+            if ($dbResult)
             {
-                $dbRow = $dbResult->fetch_row();
-                $callerOnline = $dbRow[0] > 0;
+                $count = $dbResult->fetchColumn();
+                $callerOnline = $count > 0;
             }
             clLog("line $line online: $callerOnline");
 
@@ -218,11 +226,10 @@ if ($editMode && $updateXMLText)
                            "WHERE  line = '$line'";
                     clLog($sql);
                     $dbResult = $dbConn->query($sql);
-                    if ($dbResult && ($dbResult->num_rows == 1))
+                    if ($dbResult)
                     {
-                        $dbRow = $dbResult->fetch_row();
                         $idOld = $id;
-                        $id = $dbRow[0];
+                        $id = $dbResult->fetchColumn();
                         clLog("After insert id updated from $idOld to $id");
                     }
                 }
@@ -254,15 +261,15 @@ if ($editMode && $updateXMLText)
 
 // Get configuration information that is not per line.
 $dbResult = $dbConn->query("SELECT * FROM cl_config");
-if ($dbResult && ($dbResult->num_rows == 1))
+if ($dbResult)
 {
-    $dbRow = $dbResult->fetch_assoc();
+    $dbRow = $dbResult->fetch(PDO::FETCH_ASSOC);
 
     $flash  = $dbRow["flash"];
     $message  = $dbRow["message"];
     $modified = $dbRow["modified"];
 
-    $dbResult->close();
+    $dbResult->closeCursor();
 }
 else
 {
@@ -337,7 +344,7 @@ else
 
 clLog($sql);
 $dbResult = $dbConn->query($sql);
-while ($dbRow = $dbResult->fetch_assoc())
+while ($dbRow = $dbResult->fetch(PDO::FETCH_ASSOC))
 {
     $callerEl = $respXML->createElement("caller");
     $callersEl->appendChild($callerEl);
@@ -350,7 +357,7 @@ while ($dbRow = $dbResult->fetch_assoc())
     appendTextNode($respXML, $callerEl, "name", $dbRow["name"]);
     appendTextNode($respXML, $callerEl, "topic", $dbRow["topic"]);
 }
-$dbResult->close();
+$dbResult->closeCursor();
 
 echo $respXML->saveXML();
 ?>

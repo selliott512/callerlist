@@ -21,37 +21,98 @@ include_once "../include/common.php";
 
 $errors = 0;
 
-$dbResult = $dbConn->query(
-    "CREATE TABLE cl_callers ( " .
-    "id int(4) NOT NULL AUTO_INCREMENT, " .
-    "line tinyint(2), " .
-    "time bigint(14), " .
-    "priority tinyint(2) DEFAULT 5, " .
-    "online tinyint(2) DEFAULT 1, " .
-    "name char(50), " .
-    "topic text, " .
-    "PRIMARY KEY (id), " .
-    "KEY (line), " .
-    "KEY (online))");
+if (strlen($dbschema) && ($dbType == CL_DB_PGSQL))
+{
+	$dbschemaQ = quoteMySQLStyle($dbschema);
+    $dbConn->query("CREATE SCHEMA \"$dbschemaQ\"");
+    $dbResult = $dbConn->query("SET search_path = '$dbschemaQ'");
+    if ($dbResult)
+    {
+?>
+        <p>Successfully created the schema <?php echo "\"$dbschemaQ\"" ?>.</p>
+<?php
+    }
+    else
+    {
+    	$errors++;
+?>
+        <p>Failed to create the schema: <?php echo getLastError() ?></p>
+<?php
+    }
+}
+
+switch ($dbType)
+{
+    case CL_DB_MYSQL:
+        $dbResult = $dbConn->query(
+            "CREATE TABLE cl_callers ( " .
+            "id int(4) NOT NULL AUTO_INCREMENT, " .
+            "line tinyint(2), " .
+            "time bigint(14), " .
+            "priority tinyint(2) DEFAULT 5, " .
+            "online tinyint(2) DEFAULT 1, " .
+            "name char(50), " .
+            "topic text, " .
+            "PRIMARY KEY (id), " .
+            "KEY (line), " .
+            "KEY (online))");
+        break;
+    case CL_DB_PGSQL:
+        $dbResult = $dbConn->query(
+            "CREATE TABLE cl_callers ( " .
+            "id serial PRIMARY KEY, " .
+            "line smallint, " .
+            "time bigint, " .
+            "priority smallint DEFAULT 5, " .
+            "online smallint DEFAULT 1, " .
+            "name varchar(50), " .
+            "topic text)");
+        if ($dbResult)
+        {
+        	$dbResult = $dbConn->query(
+                "CREATE INDEX cl_callers_line_idx " .
+                "ON           cl_callers (line)");
+        }
+        if ($dbResult)
+        {
+        	$dbResult = $dbConn->query(
+                "CREATE INDEX cl_callers_online_idx " .
+                "ON           cl_callers (online)");
+        }
+        break;
+}
+
 if ($dbResult)
 {
 ?>
     <p>Successfully created the cl_callers table.</p>
 <?php
 }
-else    
+else
 {
 	$errors++;
 ?>
-    <p>Failed to create the cl_callers table: <?php echo $dbConn->error ?></p>
+    <p>Failed to create the cl_callers table: <?php echo getLastError() ?></p>
 <?php
 }
 
-$dbResult = $dbConn->query(
-    "CREATE TABLE cl_config ( " .
-    "flash bigint(14) DEFAULT 0, " .
-    "modified bigint(14) DEFAULT 0, " .
-    "message text)");
+switch ($dbType)
+{
+    case CL_DB_MYSQL:
+        $dbResult = $dbConn->query(
+            "CREATE TABLE cl_config ( " .
+            "flash bigint(14) DEFAULT 0, " .
+            "modified bigint(14) DEFAULT 0, " .
+            "message text)");
+        break;
+    case CL_DB_PGSQL:
+        $dbResult = $dbConn->query(
+            "CREATE TABLE cl_config ( " .
+            "flash bigint DEFAULT 0, " .
+            "modified bigint DEFAULT 0, " .
+            "message text)");
+        break;
+}
 if ($dbResult)
 {
 ?>
@@ -62,9 +123,9 @@ else
 {
     $errors++;
 ?>
-    <p>Failed to create the cl_config table: <?php echo $dbConn->error ?></p>
+    <p>Failed to create the cl_config table: <?php echo getLastError() ?></p>
 <?php
-}    
+}
 
 if (!$errors)
 {
@@ -81,8 +142,8 @@ if (!$errors)
     {
         $errors++;
 ?>
-    <p><br/>Failed to insert into the cl_config table: 
-        <?php echo $dbConn->error ?><br/><br/></p>
+    <p><br/>Failed to insert into the cl_config table:
+        <?php echo getLastError() ?><br/><br/></p>
 <?php
     }
 
@@ -106,8 +167,8 @@ if (!$errors)
             {
                 $errors++;
 ?>
-    <p>Failed to insert <?php echo $line ?> line into the cl_callers table: 
-        <?php echo $dbConn->error ?></p>
+    <p>Failed to insert <?php echo $line ?> line into the cl_callers table:
+        <?php echo getLastError() ?></p>
 <?php
             }
         }

@@ -1,11 +1,17 @@
 <?php
 // Common configuration variables go in this file.
 
-// Database configuration.  Currently only MySQL is supported.
-$dbhost = "cl_domain";
+// Database configuration.  Since PDO is used refer to it's documentation
+// for more information.  But basic configuration should be obvious from
+// the example provided.
+$pdo_dsn = "pgsql:host=cl_domain;dbname=cl_db";
 $dbuser = "cl_user";
 $dbpass = "cl_password";
-$dbname = "cl_db";
+
+// The following only has an effect for databases that support schemas, such
+// as PostgreSQL.  It has no effect on other databases.  Leave it set to ""
+// for the default behaviour (usually this means using the "public" schema).
+$dbschema = "";
 
 // Set this to true for some additional logging in /var/log/httpd/error_log.
 $debug = false;

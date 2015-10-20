@@ -1,5 +1,6 @@
-This software requires Apache, PHP and MySQL to run.  Assuming you have those
-things working follow these steps:
+This software requires Apache, PHP and a database to run.  Databases MySQL and
+PostgreSQL have been tested.  Assuming you have those things working follow these
+ steps:
 
 1) expand this tar file such that the "callers" directory ends up under the
    webroot.  On Fedora this means that "callers" should end up under
@@ -8,23 +9,26 @@ things working follow these steps:
 2) Create a database called "cl_db" that the user to be used, "cl_user" in
    this case, has access to.  In MySQL this is done commands such as
    the following:
-   mysql> create database cl_db;
-   mysql> grant all on cl_db.* to cl_user@cl_domain identified by \
-      'cl_password';
+     mysql> CREATE DATABASE cl_db;
+     mysql> GRANT ALL ON cl_db.* TO cl_user@cl_domain IDENTIFIED BY \
+        'cl_password';
+   for PostgreSQL this can be similarly be done with the following:
+     psql> CREATE USER cl_user with password 'cl_password';
+     psql> CREATE DATABASE cl_db with owner cl_user;
 
 4) Edit include/settings.php to set the password specified above.
 
 5) View "index.php" in your browser.  That is, look at
-   http://cl_domain/callers
+     http://cl_domain/callers
 
 6) For the host set the home page to:
-   http://cl_domain/callerlist/list/
+     http://cl_domain/callerlist/list/
    It's important to keep in mind that although the above will redirect to
    list/index.html the later should not to bookmarked since the original URL
    invokes list/index.php, which does required security checks.
 
 7) For the call screener set the home page to:
-   http://cl_domain/callers/screener
+     http://cl_domain/callers/screener
 
 8) Optionally configure the password protection offered by the .htaccess files
    in the "list" and "screener" subdirectories.
@@ -33,19 +37,19 @@ things working follow these steps:
    auth.  You may need to add something like the following to the main
    configuration file, or it its own configuration file:
 
-  # Allow CallerList to do basic authentication and to limit users from viewing
-  # the "include" directory".
-  <Directory /var/www/html/callerlist>
-    AllowOverride AuthConfig
-  </Directory>
+    # Allow CallerList to do basic authentication and to limit users from viewing
+    # the "include" directory".
+    <Directory /var/www/html/callerlist>
+      AllowOverride AuthConfig
+    </Directory>
 
   This directory contains a sample "callerlist.conf" that can be placed in
-  /etc/httpd/conf.d.
+    /etc/httpd/conf.d.
 
 10) Ideally magic quoting should be turned off.  But this application will
    work either way.  To turn magic quoting off in a particular directory
    add this to the .htacess file:
-    # Turn magic quoting off.
-    php_flag magic_quotes_gpc Off
+     # Turn magic quoting off.
+     php_flag magic_quotes_gpc Off
    If that does not work you can edit php*.ini:
-    magic_quotes_gpc = Off
+     magic_quotes_gpc = Off
