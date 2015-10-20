@@ -1,0 +1,4 @@
+AuthType Basic
+AuthName "List Of Callers"
+AuthUserFile /etc/httpd/passwords
+Require user crew

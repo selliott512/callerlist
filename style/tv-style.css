@@ -1,0 +1,64 @@
+/* This is the CSS stylesheet for for the TV Callers application.  Adjust
+ * however you want.
+ */
+
+span.callerslinenumber 
+{
+    color: #5500aa;
+    font-face: verdana; 
+    font-size: 50;
+}
+
+input[type="submit"]
+{
+    color: #aa0000;
+    background-color: lightblue;
+}
+
+input[type="text"]
+{
+    color: #000000; /* Does nothing.  Just an example. */
+}
+
+body
+{
+    background-color: #bbffbb;
+}
+
+/* The following is used exclusively by index.php. */
+
+span.indexlinenumber 
+{
+    font-face: verdana; 
+    font-size: 35;
+}
+
+span.called 
+{
+    font-face: verdana;
+    font-size: 35;
+}
+
+span.caller_name 
+{
+    font-face: verdana;
+    font-size: 35;
+}
+
+span.topic 
+{
+    font-face: verdana;
+    font-size: 35;
+}
+
+span.message 
+{
+    font-face: verdana;
+    font-size: 35;
+}
+
+span.error 
+{
+    font-face: verdana;
+    font-size: 35;
+}

@@ -1,0 +1,13 @@
+This open source application was written by members of the Atheist Community
+of Austin in order to help with call screening.  callers.php records callers
+in a database that index.php then displays.
+
+The included tv-style.css file may be adjusted according to your preference.
+
+This software is subject to GPLv2 and later.  See the "LICENSE" file for
+information on the license.
+
+See the "INSTALL" file for information on setting up this software.
+
+Send comments and questions to:
+    tv@atheist-community.org

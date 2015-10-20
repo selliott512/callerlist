@@ -1,0 +1,26 @@
+This software requires Apache, PHP and MySQL to run.  Assuming you have those
+things working follow these steps:
+ 
+1) expand this tar file such that the "callers" directory ends up under the
+   webroot.  On Fedora this means that "callers" should end up under 
+   "/var/www/html/callers".
+   
+2) Create a database called "ae_db" that the user to be used, "atheist" in 
+   this case, has access to.  In MySQL this is done commands such as
+   the following:
+   mysql> create database ae_db;
+   mysql> grant all on ae_db.* to atheist@localhost identified by 'the_password';
+   
+4) Edit include/database.php to set the password specified above. 
+
+4) View "index.php" in your browser.  That is, look at 
+   http://atheist-experience.org/callers
+   
+5) For the host set the home page to:
+   http://atheist-experience.org/callers/list
+
+6) For the call screener set the home page to:
+   http://atheist-experience.org/callers/screener
+
+7) Optionally configure the password protection offered by the .htacces files
+   in the "list" and "screener" subdirectories.
