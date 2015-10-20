@@ -317,10 +317,30 @@ $callerlistEl->appendChild($callersEl);
 // sort strictly by date as it would be confusing otherwise.
 if ($editMode)
 {
+    // This has been separated into two queries because with MySQL there are 
+    // odd performance issues with the "SELECT max(id) ..." being in a 
+    // subquery in spite of it not being correlated with the parent query.
+    $sql = "SELECT max(id) AS max " .
+           "FROM cl_callers GROUP BY line";
+    clLog($sql);
+    $maxIdList = "";
+    $firstRow = true;
+    $dbResult = $dbConn->query($sql);
+    while ($dbRow = $dbResult->fetch(PDO::FETCH_ASSOC))
+    {
+        if ($firstRow)
+        {
+            $firstRow = false;
+        }
+        else
+        {
+            $maxIdList .= ", ";
+        }
+	$maxIdList .= $dbRow["max"];
+    }
+
     $sql = "SELECT * FROM cl_callers " .
-           "WHERE id IN (" .
-           "  SELECT max(id) " .
-           "  FROM cl_callers GROUP BY line) " .
+           "WHERE id IN (" . $maxIdList. ")" .
            "AND line <= $numLines " .
            "ORDER BY line";
 }
