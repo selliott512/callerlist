@@ -165,6 +165,12 @@ function setRowClass(trEl)
 
     trEl.className = priToClass(online, priority);
 
+    if (!editMode)
+    {
+        // For list mode one color for the entire row works.
+        return;
+    }
+
     if (onlineEl)
     {
         onlineEl.className = (onlineEl.value == 1) ? "on" : "off";
@@ -220,12 +226,6 @@ function addCaller(items)
                 continue;
             }
 
-            if (!editMode && (idx == colIdxOnline))
-            {
-                // For list mode there is no online column.
-                continue;
-            }
-
             var itemText = items[idx];
             var tdEl = document.createElement("td");
             trEl.appendChild(tdEl);
@@ -261,7 +261,7 @@ function addCaller(items)
                     {
                         inEl.onfocus = fieldSave;
                         inEl.onblur = fieldSend;
-                        inEl.onkeyup = fieldKey;
+                        inEl.onkeyup = fieldKeyEdit;
                         var width = (idx == colIdxTopic) ? 99 : 98;
                         inEl.style.cssText =
                             "width: " + width + "%";
@@ -287,13 +287,6 @@ function addCaller(items)
     for (var idx in items)
     {
         var itemText = items[idx];
-
-        if (!editMode && (idx == colIdxOnline))
-        {
-            // There is no online column in list mode.
-            continue;
-        }
-
         var colId = colNames[idx];
         var cellId = rowId + "-" + colId;
         var itemEl = document.getElementById(cellId);
@@ -783,9 +776,17 @@ function init()
     updateEl.onclick = update;
 
     var messageEl = document.getElementById("message");
-    messageEl.onfocus = fieldSave;
-    messageEl.onblur = fieldSend;
-    messageEl.onkeyup = fieldKey;
+    if (editMode)
+    {
+        messageEl.onfocus = fieldSave;
+        messageEl.onblur = fieldSend;
+        messageEl.onkeyup = fieldKeyEdit;
+    }
+    else
+    {
+        document.getElementById("pause").focus();
+        document.body.onkeyup = fieldKeyList;
+    }
 
     update();
 }
@@ -945,7 +946,8 @@ function fieldSend(e)
     }
 }
 
-function fieldKey(e)
+// Edit mode key handler.
+function fieldKeyEdit(e)
 {
     var e = getEvent(e);
     var target = getTarget(e);
@@ -959,11 +961,11 @@ function fieldKey(e)
                 // If control was pressed then flash as well as send.
                 flash();
             }
-            log("fieldKey: return key code");
+            log("fieldKeyEdit: return key code");
             fieldSend(e);
             break;
         case 27: // escape
-            log("fieldKey: escape key code.  valueLast: " + valueLast);
+            log("fieldKeyEdit: escape key code.  valueLast: " + valueLast);
             target.className = "";
             target.value = valueLast;
             break;
@@ -992,6 +994,42 @@ function fieldKey(e)
                 target.className = "changed";
             }
     }
+}
+
+// List mode key handler.
+function fieldKeyList(e)
+{
+    var e = getEvent(e);
+    var keyCode = getKeyCode(e);
+
+    switch (keyCode)
+    {
+        case 65: // A
+            var id = "all";
+            var func = allC;
+            break;
+        case 80: // P
+            var id = "pause";
+            var func = pause;
+            break;
+        case 83: // S
+            var id = "sync";
+            var func = sync;
+            break;
+        case 85: // U
+            var id = "update";
+            var func = update;
+            break;
+        default:
+            return;
+    }
+
+    var el = document.getElementById(id);
+    if (el.checked != "undefined")
+    {
+        el.checked = !el.checked;
+    }
+    func();
 }
 
 function getKeyCode(e) {
