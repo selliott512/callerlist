@@ -51,7 +51,8 @@ appendTextNode($respXML, $callerlistEl, "time", $time);
 
 // Make sure the user has permission.  If not redirect them.
 $requiredAuth = $editMode ? CL_AUTH_SCREENER : CL_AUTH_CREW;
-if ($_SESSION["cl_auth"] < $requiredAuth)
+if ((session_id() != $_POST["phpsessid"]) ||
+    ($_SESSION["cl_auth"] < $requiredAuth))
 {
     if ($editMode)
     {
@@ -299,6 +300,7 @@ if (isset($updates))
 appendTextNode($respXML, $callerlistEl, "flash", $flash);
 appendTextNode($respXML, $callerlistEl, "message", $message);
 appendTextNode($respXML, $callerlistEl, "numLines", $numLines);
+appendTextNode($respXML, $callerlistEl, "pauseLimit", $pauseLimit);
 appendTextNode($respXML, $callerlistEl, "refreshRate", $refreshRate);
 
 $callersEl = $respXML->createElement("callers");

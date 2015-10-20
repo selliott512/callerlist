@@ -19,6 +19,10 @@ $keepHistory = true;
 // It also determines the maximum line that may be returned by various queries.
 $numLines = 3;
 
+// Limit in minutes after which the browser pauses itself.  This is to prevent
+// bandwidth from being wasted by forgotten browsers.  Set to 0 to disable.
+$pauseLimit = 180;
+
 // The rate that clients refresh in milliseconds.
 $refreshRate = 5000;
 ?>

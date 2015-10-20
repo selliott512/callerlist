@@ -26,7 +26,10 @@ var nowClientMsec = 0;
 var nowServerMsec = 0;
 var offset = 0; // Client time - server time in msec.
 var paused = false;
+var pauseLimit = 0;
+var pauseTime = 0;
 var pendingCount = 0;
+var phpsessid = null;
 var numCallers = 0; // Number of callers currently displayed.
 var randomized = false;
 var redirect = null;
@@ -107,6 +110,29 @@ function numToDate(dateNum)
     var date = new Date();
     date.setTime(dateNum);
     return simpleDate(date);
+}
+
+function readCookie(name)
+{
+    var cookies = document.cookie.split(";");
+    for (var idx in cookies)
+    {
+        var cookie = cookies[idx];
+        var cName = cookie.split("=")[0];
+        if (cName[0] == " ")
+        {
+            // Workaround since trim() is not implemented for all browsers.
+            cName = cName.substr(1);
+        }
+
+        if (cName == name)
+        {
+            var cValue = cookie.split("=")[1];
+            return cValue;
+        }
+    }
+
+    return null;
 }
 
 function appendTextNode(xmlDoc, prntEl, name, value)
@@ -417,6 +443,42 @@ function ajaxHandler()
     document.getElementById("time").innerHTML = numToDate(
         nowClientMsec - offset);
 
+    // If more than pauseLimit minutes have passed since the last modification
+    // then pause this web page.
+    if (pauseTime && (nowServerMsec > pauseTime))
+    {
+        // Reset the pauseTime so that it is recalculated when the this page
+        // is unpaused.
+        pauseTime = 0;
+
+        // Do a full reload to recalculate the pausetTime and reset the message
+        // when the this page is unpaused.
+        modified = 0;
+
+        // Explain why the page was paused in the message field.
+        // TODO: There should be a common message or field setting function.
+        var messageEl = document.getElementById("message");
+        var messageTn = document.createTextNode("This page has been paused " +
+                "since " + pauseLimit + " minutes have passed since this " +
+                "page was loaded.  Reload or unclick the \"Pause\" " +
+                "checkbox to continue.");
+        if (messageEl.firstChild)
+        {
+            messageEl.replaceChild(messageTn, messageEl.firstChild);
+        }
+        else
+        {
+            messageEl.appendChild(messageTn);
+        }
+
+        // Manually pause this page.
+        var pauseEl = document.getElementById("pause");
+        pauseEl.checked = true;
+        pause();
+
+        return;
+    }
+
     // Load again in 5 seconds regardless of the HTTP status but only if
     // there is no call pending.  Also, all callers implies a huge resource
     // hungry list that the viewer wants to view without interruption.
@@ -605,6 +667,15 @@ function ajaxHandler()
                     rate = parseInt(node.firstChild.nodeValue);
                     halfRate = parseInt(rate / 2);
                 }
+                else if ((node.nodeName == "pauseLimit") && node.firstChild)
+                {
+                    pauseLimit = parseInt(node.firstChild.nodeValue);
+                    if (pauseLimit)
+                    {
+                        pauseTime = parseInt(nowServerMsec) +
+                            1000 * 60 * pauseLimit;
+                    }
+                }
             }
         }
     }
@@ -694,8 +765,8 @@ function update()
     ah.open("POST", "../ajax/callerlist.php", true); // Third arg - async.
     ah.setRequestHeader("Content-type","application/x-www-form-urlencoded");
     startClientMsec = (new Date()).getTime();
-    var postStr = "modified=" + modified + "&allCallers=" + allCallers +
-        "&editMode=" + editMode;
+    var postStr = "phpsessid=" + phpsessid + "&modified=" + modified +
+        "&allCallers=" + allCallers + "&editMode=" + editMode;
     if (editMode && updateXML && updated)
     {
         var updateXMLText = xml2Str(updateXML);
@@ -740,6 +811,12 @@ function allC()
 
 function init()
 {
+    // Well before the onload callback is called the PHP session should have
+    // been established.  This is used to prevent CSRF attacks.
+    phpsessid = readCookie("PHPSESSID");
+
+    // Calculate the time at which this application will be paused.
+
     // Make a note of the number of nodes in an empty caller table so it can
     // blanked out later.
     var callerTableEl = document.getElementById("callerTable");
