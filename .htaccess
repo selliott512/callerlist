@@ -1,0 +1,3 @@
+# Change this to whatever password file works well for you.  The list, edit and
+# admin directories depend on it.
+AuthUserFile /etc/httpd/passwords

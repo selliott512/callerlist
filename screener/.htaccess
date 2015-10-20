@@ -1,4 +1,0 @@
-AuthType Basic
-AuthName "Call Screener Data Entry"
-AuthUserFile /etc/httpd/passwords
-Require user screener

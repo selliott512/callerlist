@@ -1,0 +1,151 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>CallerList Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../style/callerlist.css" />
+    <link rel="shortcut icon" href="../style/favicon.png" type="image/x-icon" />
+  </head>
+  <body class="background">
+    <h2>Introduction</h2>
+    <p>CallerList was written by members of
+      the <a href="http://atheist-community.org/">Atheist Community of
+      Austin</a> in order to help with call screening for their live call in
+      public access TV show "<a href="http://atheist-experience.org/">The
+      Atheist Experience</a>".  Please see the <a href="#credits">cedits</a>
+      section for additional details </p>
+    <p>CallerList is a LAMP and AJAX based application that consists of one
+      web interface for the "screener" (person who does caller data entry) and
+      for the "crew" (people such as the host of the show who answer the calls
+      on air).</p>
+    <p>The included callerlist.css file may be adjusted according to your
+  preference.</p>
+    <p>See the "INSTALL" file for information on setting up this
+      software.</p>
+    <p>Send comments and questions to:<br />
+         selliott4@austin.rr.com</p>
+    <p>Please see the HTML documentation in the index.html file in this
+      directory for additional details.</p>
+    <h2>License</h2>
+    <p>This software is subject to GPLv2 and later.  See the "LICENSE" file for
+  information on the license.</p>
+    <h2>
+      <a id="credits">Credits</a>
+    </h2>
+    <p>The original concept and implementation was by Linda Raymond of
+      Houston, TX.  Steven Elliott &lt;selliott4@austin.rr.com&gt; of Austin,
+      TX rewrote CallerList.  It was HTML form and post based.  It is now AJAX
+      based.</p>
+    <h2>Requirements</h2>
+    <p>CallerList uses JavaScript extensively.  Although a relatively new
+      browser is required multiple browser vendors are supported.  The
+      following has been tested successfully.:</p>
+    <ul>
+      <li>Chrome 4.0.249.30</li>
+      <li>Firefox 3.5.9</li>
+      <li>Internet Explorer 8</li>
+      <li>Nexus One 2.1-update1</li>
+    </ul>
+    <p>Hopefully any version of PHP 5 works, but only PHP 5.2 has been
+      tested.</p>
+    <h2>Installation</h2>
+    <p>The installation instructions are in the the INSTALL file in this
+       directory.</p>
+    <h2>Help</h2>
+    <p>The host and screener pages are similar.  For the most part the
+      screener's page is a writable version of the host page with some
+      additional features.  This help begins by discussing some of the
+      elements on each page and then ends with some information about key
+      bindings for the screener.</p>
+    <h3>Fields</h3>
+    <dl>
+      <dt>Modified</dt>
+      <dd>This is the time that the screener last made some change to the
+        database.  Seeing this value can reassure the crew that the screener
+        is actively working.</dd>
+      <dt>Time</dt>
+      <dd>This is the server time rendered with the client's time zone.</dd>
+      <dt>HTTP Status</dt>
+      <dd>The last status received in the HTTP response headers.  200
+        indicates success.  A list of possible HTTP statuses can be
+        found <a href="http://en.wikipedia.org/wiki/List_of_HTTP_status_codes">
+        here</a>.  This field turns red when there is an err (when the status
+        is not 200).</dd>
+      <dt>RTT</dt>
+      <dd>This is the Round Trip Time from the browser to the webserver.  An
+        increase in this value may indicate network congestion.</dd>
+      <dt>Pause</dt>
+      <dd>Don't retrieve new caller information unless the "Update" button
+        is clicked explicitly.</dd>
+      <dt>Sync</dt>
+      <dd>When selected the client adjusts the delay between updates so
+        that the updates are done on some multiple of the update rate.  For
+        example, if the default update rate of every 5 seconds is used then
+        when this is selected updates will happen at 1:00:00, 1:00:05,
+        ...</dd>
+      <dt>All (list page only)</dt>
+      <dd>When selected the crew can see the last 100 callers in
+        chronological order regardless of online status or priority.  The crew
+        can use this when the want information on a recent past caller.</dd>
+      <dt>Flash (edit page only)</dt>
+      <dd>When the screener presses this button call clients turn red from 5
+        to 10 seconds.  This is used when there is some urgent issue, such as
+        the microphone being broken, where the screener needs to get the
+        attention of the host quickly.</dd>
+      <dt>Manual Update</dt>
+      <dd>When pressed new caller information is retrieved rather than
+        waiting 5 seconds.</dd>
+      <dt>Caller List</dt>
+      <dd>This is the list of callers.  For the list page this is the online
+        callers.  For the edit page a fixed list of lines is displayed.</dd>
+      <dt>Message</dt>
+      <dd>This final field is used for the screener to send messages to the
+        crew.</dd>
+    </dl>
+    <h3>Edit Page</h3>
+    <p>It's helpful to understand what colors mean on the edit page.  When a
+    caller is placed online (the button in the online column) the online
+    button turns yellow.  When a field differs from it's original value it
+    becomes a light blue.  When The field is exited and the result is to to be
+    sent to the server the field turns yellow until the server acknowledges
+    the change.  Consequently a buildup of yellow fields can indicate network
+    trouble.</p>
+    <p>There are a few special key bindings for the edit page.</p>
+    <dl>
+      <dt>Delete</dt>
+      <dd>If the control key is pressed with delete the message field or row
+      is cleared.</dd>
+      <dt>Down Arrow</dt>
+      <dd>When a name or topic field has focus this places the caller offline.
+      The call screener does this when the host hangs up on a caller.  If
+      the control key is pressed with the down arrow the current row is also
+      cleared.</dd>
+      <dt>Escape</dt>
+      <dd>When this is pressed edits to the current field are discarded.</dd>
+      <dt>Return</dt>
+      <dd>When this is pressed the changes to the current field are sent to
+      the server.  Usually the call screener presses either the up arrow or
+      simple exits the field.  If the control key is pressed with the return
+      key all clients are flashed.</dd>
+      <dt>Up Arrow</dt>
+      <dd>When a name or topic field has focus this places the caller online.
+      The call screener does this when queueing up a caller.</dd>
+    </dl>
+    <h2>TODO</h2>
+    <p>This section mostly only concerns developers.  It gives an overview of
+    changes that should be made in the future.</p>
+    <ul>
+      <li>DOM XML API cleanup.  Currently the code does a lot of looping and
+      ignoring of empty text elements.  It should just call
+      getElementsByName() for the elements it needs explicitly.</li>
+      <li>The PHP code should be organized.  At the very least the PHP code
+      should be organized into functions.</li>
+      <li>NLS support.  Figure out what needs to be done so that the PHP code
+      can unravel percent encoded non-ASCII text.  UTF-8 should be used
+      whenever possible.</li>
+      <li>Godaddy support.  Figure out why no helpful information is provided
+      for database connectivity errors for Godaddy only.</li>
+    </ul>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+<!ELEMENT callerList (updates? | time? | modified? | flash? | message? | 
+    numLines? | refreshRate? | callers?)*>
+<!ELEMENT updates (#PCDATA)>
+<!ELEMENT time (#PCDATA)>
+<!ELEMENT modified (#PCDATA)>
+<!ELEMENT flash (#PCDATA)>
+<!ELEMENT message (#PCDATA)>
+<!ELEMENT numLines (#PCDATA)>
+<!ELEMENT refreshRate (#PCDATA)>
+
+<!ELEMENT callers (caller+)>
+
+<!ELEMENT caller (id, line, time, priority, online, name, topic)>
+<!ELEMENT id (#PCDATA)>
+<!ELEMENT line (#PCDATA)>
+<!ELEMENT priority (#PCDATA)>
+<!ELEMENT online (#PCDATA)>
+<!ELEMENT name (#PCDATA)>
+<!ELEMENT topic (#PCDATA)>

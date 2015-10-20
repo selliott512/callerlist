@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<callerList>
+  <updates>8</updates>
+  <callers>
+    <caller>
+      <id>1</id>
+      <line>1</line>
+      <time>18:00:00</time>
+      <priority>5</priority>
+      <online>1</online>
+      <name>Sara</name>
+      <topic>What is this show about?</topic>
+    </caller>
+    <caller>
+      <id>2</id>
+      <line>2</line>
+      <time>18:00:00</time>
+      <priority>5</priority>
+      <online>1</online>
+      <name>Mike</name>
+      <topic>The Illuminati.</topic>
+    </caller>
+  </callers>
+  <message>Your microphone is broken.</message>
+  <flash>1</flash>
+</callerList>

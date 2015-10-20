@@ -12,7 +12,7 @@ contact information.
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>Caller List</title>
+    <title>Caller Edit</title>
     <link rel="stylesheet" type="text/css" href="../style/callerlist.css" />
     <link rel="shortcut icon" href="../style/favicon.png" type="image/x-icon" />
     <script type="text/javascript" src="../include/common.js"></script>
@@ -37,7 +37,7 @@ contact information.
         <td style="width:16.67%">RTT (msec)</td>
         <td style="width:16.67%">Update Control</td>
         <td style="width:16.67%">Time Alignment</td>
-        <td style="width:16.67%">Caller Filter</td>
+        <td style="width:16.67%">Flash</td>
         <td style="width:16.67%">Manual Update</td>
       </tr>
       <tr>
@@ -45,24 +45,27 @@ contact information.
         <td style="width:16.67%" id="rtt">-1</td>
         <td style="width:16.67%"><input type="checkbox" id="pause" value="no" />Pause</td>
         <td style="width:16.67%"><input type="checkbox" id="sync" value="no" />Sync</td>
-        <td style="width:16.67%"><input type="checkbox" id="all" value="no" />All</td>
+        <td style="width:16.67%">
+          <input type="button" id="flash" value="Flash" />
+        </td>
         <td style="width:16.67%">
           <input type="button" id="update" value="Update" />
         </td>
       </tr>
     </table>
     <p></p>
-    <table id="callerTable" width="100%" cellpadding="2" cellspacing="2">
+    <table id="callerTable" width="100%" cellpadding="0" cellspacing="2">
       <tr class="header">
         <td style="width:2.5%">L</td>
         <td style="width:10%">Time</td>
         <td style="width:2.5%">P</td>
+        <td style="width:2.5%">O</td>
         <td style="width:25%">Name</td>
-        <td style="width:60%">Topic</td>
+        <td style="width:57.5%">Topic</td>
       </tr>
     </table>
     <p></p>
-    <table id="legendTable" class="legend" width="100%" cellpadding="2e" cellspacing="2">
+    <table id="legendTable" class="legend" width="100%" cellpadding="2" cellspacing="2">
       <tr>
         <td style="width:25%" class="high">H - High priority</td>
         <td style="width:25%" class="medium">M - Medium priority</td>
@@ -71,10 +74,11 @@ contact information.
       </tr>
     </table>
     <p></p>
-    <table id="messageTable" width="100%" cellpadding="2e" cellspacing="2">
+    <table id="messageTable" width="100%" cellpadding="0" cellspacing="2">
       <tr>
-        <td id="message">This page has never been updated.  
-            Internet trouble?</td>
+        <td>
+          <textarea id="message" rows="3" cols="80" style="width:100%"></textarea>
+        </td>
       </tr>
     </table>
     <p></p>

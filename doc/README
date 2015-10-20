@@ -1,8 +1,12 @@
-"CallerList" was written by members of the Atheist Community of Austin in order
-to help with call screening.  callers.php records callers in a database that 
-index.html then displays.
+CallerList was written by members of the Atheist Community of Austin in
+order to help with call screening for their live call in public access TV show
+"The Atheist Experience".  
 
-The included tv-style.css file may be adjusted according to your preference.
+CallerList is a LAMP and AJAX based application that consists of one web
+interface for the "screener" (person who does caller data entry) and for the
+"crew" (people such as the host of the show who answer the calls on air).
+
+The included callerlist.css file may be adjusted according to your preference.
 
 This software is subject to GPLv2 and later.  See the "LICENSE" file for
 information on the license.
@@ -10,4 +14,7 @@ information on the license.
 See the "INSTALL" file for information on setting up this software.
 
 Send comments and questions to:
-    tv@atheist-community.org
+    selliott4@austin.rr.com
+
+Please see the HTML documentation in the index.html file in this directory for
+additional details.

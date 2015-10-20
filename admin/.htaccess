@@ -1,0 +1,5 @@
+# Add users here that should be able to recrete the database.  This depends on
+# AuthUserFile, which is set in the top level directory.
+AuthType Basic
+AuthName "Administer CallerList"
+Require user admin

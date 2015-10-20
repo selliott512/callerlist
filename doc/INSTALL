@@ -1,27 +1,47 @@
 This software requires Apache, PHP and MySQL to run.  Assuming you have those
 things working follow these steps:
- 
+
 1) expand this tar file such that the "callers" directory ends up under the
    webroot.  On Fedora this means that "callers" should end up under 
    "/var/www/html/callers".
    
-2) Create a database called "tv_db" that the user to be used, "tv_user" in 
+2) Create a database called "cl_db" that the user to be used, "cl_user" in 
    this case, has access to.  In MySQL this is done commands such as
    the following:
-   mysql> create database tv_db;
-   mysql> grant all on tv_db.* to tv_user@tv-domain.com identified by \
-      'tv_password';
+   mysql> create database cl_db;
+   mysql> grant all on cl_db.* to cl_user@cl_domain identified by \
+      'cl_password';
    
-4) Edit include/database.php to set the password specified above. 
+4) Edit include/settings.php to set the password specified above. 
 
-4) View "index.php" in your browser.  That is, look at 
-   http://tv-domain.com/callers
+5) View "index.php" in your browser.  That is, look at 
+   http://cl_domain/callers
    
-5) For the host set the home page to:
-   http://tv-domain.com/callers/list
+6) For the host set the home page to:
+   http://cl_domain/callerlist/list/
+   It's important to keep in mind that although the above will redirect to 
+   list/index.html the later should not to bookmarked since the original URL 
+   invokes list/index.php, which does required security checks.
 
-6) For the call screener set the home page to:
-   http://tv-domain.com/callers/screener
+7) For the call screener set the home page to:
+   http://cl_domain/callers/screener
 
-7) Optionally configure the password protection offered by the .htacces files
+8) Optionally configure the password protection offered by the .htaccess files
    in the "list" and "screener" subdirectories.
+
+9) If step 7) is pursued make sure the Apache is configured to allow basic 
+   auth.  You may need to add something like the following to the main 
+   configuration file, or it its own configuration file:
+
+    # Allow authentication for the call screener or anything else.
+    <Directory /var/www/html/callerlist>
+        AllowOverride AuthConfig
+    </Directory>
+
+10) Ideally magic quoting should be turned off.  But this application will 
+   work either way.  To turn magic quoting off in a particular directory
+   add this to the .htacess file:
+    # Turn magic quoting off.
+    php_flag magic_quotes_gpc Off
+   If that does not work you can edit php*.ini:
+    magic_quotes_gpc = Off

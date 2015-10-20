@@ -1,0 +1,5 @@
+# Add users here that should be able to alter the list of callers.  This
+# depends on AuthUserFile, which is set in the top level directory.
+AuthType Basic
+AuthName "Edit The Callers"
+Require user screener admin

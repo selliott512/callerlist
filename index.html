@@ -3,35 +3,40 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Call Screening Server</title>
-    <link rel="stylesheet" type="text/css" href="style/tv-style-classic.css" />
+    <title>CallerList</title>
+    <link rel="stylesheet" type="text/css" href="style/callerlist.css" />
     <link rel="shortcut icon" href="style/favicon.png" type="image/x-icon" />
   </head>
-  <body>
-    <p>This is the call screening server.  You probably want the one of the 
-    following AE related web page:</p>
+  <body class="background">
+    <p>This the home page for CallerList, a web base call screening 
+       application.  Please select one of the links below.</p>
     <dl>
       <dt>
-        <a href="list">List Of Callers</a>
+        <a href="doc/">Documentation</a>
+      </dt>
+      <dd>Click here information about CallerList.</dd>
+    </dl>
+    <dl>
+      <dt>
+        <a href="list/">List The Callers</a>
       </dt>
       <dd>Try this if you just want to see the list of callers.  You'll need
           the password for the "crew" user.</dd>
     </dl>
     <dl>
       <dt>
-        <a href="list-classic">List Of Callers Classic</a>
-      </dt>
-      <dd>Try this if you want the old fashioned non-JavaScript list of callers.
-          Also, only the classic PHP pages contain the code to recreate the
-          database if the database is broken.  You'll need the password for
-          the "crew" user.</dd>
-    </dl>
-    <dl>
-      <dt>
-        <a href="screener">Caller Screener Data Entry</a>
+        <a href="edit/">Edit The Callers</a>
       </dt>
       <dd>Try this if you're the caller screener.  You'll need the password
           for the "screener" user.</dd>
+    </dl>
+    <dl>
+      <dt>
+        <a href="admin/">Administer</a>
+      </dt>
+      <dd>Try this if you are the administer of CallerList and you'd like to
+          do things such as recreating the database.  You'll need the
+          password for the "admin" user.</dd>
     </dl>
   </body>
 </html>

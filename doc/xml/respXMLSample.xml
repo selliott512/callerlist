@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<callerList>
+  <time>1275449216444</time>
+  <modified>1275448667971</modified>
+  <flash>1275448667971</flash>
+  <message>All is well, host.</message>
+  <numLines>3</numLines>
+  <refreshRate>7000</refreshRate>
+  <callers>
+    <caller>
+      <id>12</id>
+      <line>1</line>
+      <time>1275447580009</time>
+      <priority>4</priority>
+      <online>1</online>
+      <name>Bob</name>
+      <topic>Global warming.</topic>
+    </caller>
+    <caller>
+      <id>14</id>
+      <line>2</line>
+      <time>1275447667476</time>
+      <priority>6</priority>
+      <online>1</online>
+      <name>Tom</name>
+      <topic>Cats vs. dogs.</topic>
+    </caller>
+  </callers>
+</callerList>

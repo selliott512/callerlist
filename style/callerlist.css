@@ -4,14 +4,9 @@
 
 /* The following gives a pale green background (body) with dark grey table
  * backgrounds (table), which is seen as divisions between cells, and
- * light gery row backgrounds (tr).  Also, the body font size provides a
+ * light grey row backgrounds (tr).  Also, the body font size provides a
  * default font size for the entire document.
  */
-
-body
-{
-    font-size: 150%;
-}
 
 table
 {
@@ -30,14 +25,24 @@ td#time, td#modified
     font-size: 200%;
 }
 
-/* The button seems to be a special case where attributes are not inherited
- * from the containing attributes.
- */
-
 input
 {
     font-size: 80%;
-    background-color: #c0c0ff;
+    background-color: #f0f0f0;
+}
+
+textarea
+{
+    font-size: 120%;
+    background-color: #f0f0f0;
+}
+
+/* The pages viewed by the hosts on TV need to be larger since it's likely that
+ * they'll be farther from the computer.
+ */
+.big
+{
+    font-size: 150%;
 }
 
 /* Shrink static information since it mostly just takes up space.  if it's
@@ -79,4 +84,29 @@ input
 .background
 {
     background-color: #bbffbb;
+}
+
+/* Used for buttons to have an on and off state. */
+
+.off
+{
+    background-color: #b0b0b0; /* same as "old" for now */
+}
+
+.on
+{
+    background-color: #ffff00;
+}
+
+
+/* Used for the lifecycle of text fields. */
+
+.pending
+{
+    background-color: #ffff00;
+}
+
+.changed
+{
+    background-color: #bbbbff;
 }
